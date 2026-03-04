@@ -1,6 +1,6 @@
 import 'package:bolao_/data/times_data.dart';
 import 'package:bolao_/database/database_helper.dart';
-import 'package:bolao_/screens/times_screen.dart';
+//import 'package:bolao_/screens/times_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -31,12 +31,12 @@ class BolaoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: TimesScreen(),
-      // home: Scaffold(
-      //   body: Center(
-      //     child: Text('Bolão App - Banco testado!'),
-      //   ),
-      // ),
+      //home: TimesScreen(),
+      home: Scaffold(
+        body: Center(
+          child: Text('Bolão App - Banco testado!'),
+        ),
+      ),
     );
   }
 }
