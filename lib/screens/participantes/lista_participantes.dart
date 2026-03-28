@@ -374,47 +374,50 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
               )
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 6,
-              offset: const Offset(0, -2),
-            ),
-          ],
+      bottomNavigationBar: SafeArea(
+  child: Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.primary,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 6,
+          offset: const Offset(0, -2),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '${participantes.length} participantes cadastrados',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            '${participantes.length} participantes cadastrados',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
-            ElevatedButton.icon(
-              onPressed: () async {
-                final pdf = await gerarPdf();
-                await salvarPdfEPDFabrir(pdf, 'Bolao2026', context);
-              },
-              icon: const Icon(Icons.picture_as_pdf, size: 18),
-              label: const Text("Exportar"),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        ElevatedButton.icon(
+          onPressed: () async {
+            final pdf = await gerarPdf();
+            await salvarPdfEPDFabrir(pdf, 'Bolao2026', context);
+          },
+          icon: const Icon(Icons.picture_as_pdf, size: 18),
+          label: const Text("Exportar"),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
     );
   }
 }
