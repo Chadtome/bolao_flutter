@@ -2,11 +2,13 @@ class Time {
     final int? id;
     final String nome;
     final String? logo;
+    final int? grupoId;
 
     Time({
         this.id,
         required this.nome,
-        required this.logo
+        required this.logo,
+        this.grupoId,
     });
 
     Map<String, dynamic> toMap() {
@@ -14,6 +16,7 @@ class Time {
             'id' : id,
             'nome' : nome,
             'logo' : logo,
+            'grupo_id': grupoId
         };
     }
 
@@ -22,6 +25,7 @@ class Time {
             id: map['id'],
             nome: map['nome'],
             logo: map['logo'],
+            grupoId: map['grupo_id'],
         );
     }
 }

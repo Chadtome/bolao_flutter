@@ -1,12 +1,19 @@
+import 'dart:convert';
+
 class Participante {
   final int? id;
   final String nome;
   final int pontuacao;
+  final Map<String, List<int>> grupos;
+
+
+  
 
   Participante({
     this.id,
     required this.nome,
     this.pontuacao = 0,
+    required this.grupos,
   });
 
   Map<String, dynamic> toMap() {
@@ -14,6 +21,7 @@ class Participante {
       'id': id,
       'nome': nome,
       'pontuacao': pontuacao,
+      'grupos': jsonEncode(grupos)
 
     };
   }
@@ -22,7 +30,12 @@ class Participante {
     return Participante(
       id: map['id'],
       nome: map['nome'],
-      pontuacao: map['pontuacao'],
+      pontuacao: map['pontuacao'] ?? 0,
+      grupos: Map<String, List<int>>.from(
+        jsonDecode(map['grupos']).map(
+          (key, value) => MapEntry(key, List<int>.from(value)),
+        )
+      )
       );
   }
 }
