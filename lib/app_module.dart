@@ -1,5 +1,6 @@
 import 'package:bolao_/screens/participantes/lista_participantes.dart';
 import 'package:bolao_/screens/participantes/tela_novo_partipante.dart';
+import 'package:bolao_/screens/rodadas/tela_rodadas.dart';
 import 'package:bolao_/screens/tela_participantes_menu.dart';
 import 'package:bolao_/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,10 @@ class _AppModuleState extends State<AppModule> {
         '/novo_participante': (context) =>
           TelaNovoParticipante(onToggleTheme: toggleTheme),
         '/lista_participante': (context) =>
-          ListaParticipantesScreen(onToggleTheme: toggleTheme,)
+          ListaParticipantesScreen(onToggleTheme: toggleTheme,),
+        '/rodadas': (context) =>
+          TelaRodadas(onToggleTheme: toggleTheme),  
+
       },
     ),
     );

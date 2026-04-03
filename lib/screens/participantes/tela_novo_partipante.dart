@@ -131,7 +131,7 @@ Future<void> salvarParticipante() async {
         final time = timesData.firstWhere(
           (t) => t.id == id,
           orElse: () =>
-              Time(id: 0, nome: 'Desconhecido', grupoId: 0, logo: ''),
+              Time(id: 0, nome: 'Desconhecido', grupoId: 0, logo: '', abreviatura: ''),
         );
         nomesTimes.add(time.nome); // ✅ nomes reais
       }
@@ -159,74 +159,6 @@ Future<void> salvarParticipante() async {
   // Voltar para lista
   Navigator.pop(context);
 }
-
-//   Future<void> salvarParticipante() async {
-//   bool temErro = false;
-
-//   setState(() {
-//     erroNome = nomeController.text.trim().isEmpty;
-
-//     gruposLimite.forEach((grupo, limite) {
-//       if (gruposSelecionados[grupo]!.length != limite) {
-//         erroGrupo[grupo] = true;
-//         temErro = true;
-//       } else {
-//         erroGrupo[grupo] = false;
-//       }
-//     });
-//   });
-
-//   if (erroNome || temErro) {
-//     AppToast.error(
-//       context: context,
-//       text: 'Ainda existem campos para preencher',
-//     );
-//     return;
-//   }
-
-//   // Criando objeto participante
-//   final participante = Participante(
-//     nome: nomeController.text.trim(),
-//     grupos: gruposSelecionados,
-//   );
-
-//   // Inserindo no banco
-//   await DatabaseHelper.instance.inserirParticipante(participante);
-
-//   // Mostrar todos os participantes no console
-// final participantes = await DatabaseHelper.instance.buscarParticipantes();
-// print('----------------------------------');
-// print('Lista de Participantes:');
-// for (var p in participantes) {
-//   List<String> nomesTimes = [];
-//   p.grupos.forEach((grupo, idsTimes) {
-//     for (var id in idsTimes) {
-//       final time = timesData.firstWhere(
-//         (t) => t.id == id,
-//         orElse: () => Time(id: 0, nome: 'Desconhecido', grupoId: 0, logo: ''),
-//       );
-//       // ✅ Adiciona o nome do time na lista
-//       nomesTimes.add(time.nome);
-//     }
-//   });
-
-//   print('ID: ${p.id}, Nome: ${p.nome}, Times escolhidos: $nomesTimes');
-// }
-// print('----------------------------------');
-
-//   AppToast.success(
-//     context: context,
-//     text: 'Participante salvo com sucesso',
-//   );
-
-//   // Limpar campos
-//   setState(() {
-//     nomeController.clear();
-//     gruposSelecionados.forEach((key, value) => value.clear());
-//     erroGrupo.forEach((key, value) => erroGrupo[key] = false);
-//   });
-// }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;

@@ -100,7 +100,8 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                                               id: 0,
                                               nome: 'Desconhecido',
                                               grupoId: 0,
-                                              logo: ''),
+                                              logo: '',
+                                              abreviatura: ''),
                                         );
                                         return pw.Text(
                                           '- ${time.nome}',
@@ -313,6 +314,7 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                             nome: 'Desconhecido', 
                             grupoId: 0,
                             logo: '',
+                            abreviatura: '',
                             ),
                         );
                         times.add(time.nome);

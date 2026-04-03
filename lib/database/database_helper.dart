@@ -43,6 +43,7 @@ class DatabaseHelper {
         nome TEXT NOT NULL,
         logo TEXT,
         grupo_id INTEGER,
+        abreviatura TEXT,
         FOREIGN KEY (grupo_id) REFERENCES grupos(id)
       )
     ''');

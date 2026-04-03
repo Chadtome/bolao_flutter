@@ -19,6 +19,10 @@ class _TelaParticipantesMenuState extends State<TelaParticipantesMenu> {
     setState(() {
       selectedIndex = index;
     });
+
+    if(index == 2) {
+      Navigator.pushNamed(context, '/rodadas');
+    }
   }
 
   @override
