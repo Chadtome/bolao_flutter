@@ -168,39 +168,6 @@ class _TelaRodadasState extends State<TelaRodadas> {
   setState(() {}); // Atualiza UI
 }
 
-  // Future<void> salvarResultadosAutomatico() async {
-  //   final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
-
-  //   bool todosPreenchidos = rodada.jogos.every((jogo) =>
-  //       jogo.controllerA.text.isNotEmpty && jogo.controllerB.text.isNotEmpty);
-
-  //   if (!todosPreenchidos) return; // Não salva se algum campo estiver vazio
-
-  //   for (var jogo in rodada.jogos) {
-  //     final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
-  //     if (resultadosSalvos[chave] == true) continue; // já salvo
-
-  //     final golsA = int.tryParse(jogo.controllerA.text) ?? 0;
-  //     final golsB = int.tryParse(jogo.controllerB.text) ?? 0;
-
-  //     final resultado = Resultado(
-  //       id: null,
-  //       rodada: rodada.numero,
-  //       timeA: jogo.timeA,
-  //       timeB: jogo.timeB,
-  //       golsA: golsA,
-  //       golsB: golsB,
-  //     );
-
-  //     await DatabaseHelper.instance.inserirResultados(resultado);
-  //     resultadosSalvos[chave] = true;
-
-  //     print("✅ Resultado salvo: Rodada ${rodada.numero} - ${jogo.timeA} $golsA x $golsB ${jogo.timeB}");
-  //   }
-
-  //   setState(() {}); // Atualiza a UI para mostrar o check
-  // }
-
   //-----------------------------------------------------
 
   @override
@@ -277,7 +244,7 @@ class _TelaRodadasState extends State<TelaRodadas> {
                 ),
                 child: Column(
                   children: rodada.jogos.map((jogo) {
-                    final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+                    //final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
                     //final jogoSalvo = resultadosSalvos[chave] ?? false;
 
                     return Column(
