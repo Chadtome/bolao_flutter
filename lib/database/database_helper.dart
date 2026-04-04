@@ -1,4 +1,5 @@
 //import 'dart:convert';
+import 'package:bolao_/models/resultado.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/participante.dart';
@@ -57,6 +58,18 @@ class DatabaseHelper {
         grupos TEXT NOT NULL
       )
     ''');
+
+    // Tabela de resultados
+    await db.execute('''
+      CREATE TABLE resultados(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        rodada INTEGER NOT NULL,
+        timeA TEXT NOT NULL,
+        timeB TEXT NOT NULL,
+        golsA INTEGER,
+        golsB INTEGER
+      )
+''');
   }
 
   //------------------- Métodos para Grupos -------------------
@@ -123,6 +136,48 @@ class DatabaseHelper {
     final db = await instance.database;
     return await db.delete(
       'participantes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Inserir resultados
+  Future<int> inserirResultados(Resultado resultado) async {
+    final db = await instance.database;
+    return await db.insert(
+      'resultados',
+      resultado.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace, // evita duplicados
+    );
+  }
+
+  // Buscar resultados por rodada
+  Future<List<Resultado>> buscarResultadosPorRodada(int rodada) async {
+    final db = await instance.database;
+    final result = await db.query(
+      'resultados',
+      where: 'rodada = ?',
+      whereArgs: [rodada],
+    );
+    return result.map((map) => Resultado.fromMap(map)).toList();
+  }
+
+  // Atualizar resultado
+  Future<int> atualizarResultado(Resultado resultado) async {
+    final db = await instance.database;
+    return await db.update(
+      'resultados',
+      resultado.toMap(),
+      where: 'id = ?',
+      whereArgs: [resultado.id]
+    );
+  }
+
+  // Deletar resultado
+  Future<int> deletarResultado(int id) async {
+    final db = await instance.database;
+    return await db.delete(
+      'resultados',
       where: 'id = ?',
       whereArgs: [id],
     );

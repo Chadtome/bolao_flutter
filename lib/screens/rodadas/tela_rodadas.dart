@@ -1,4 +1,6 @@
 import 'package:bolao_/data/rodada_mock.dart';
+import 'package:bolao_/database/database_helper.dart';
+import 'package:bolao_/models/resultado.dart';
 import 'package:bolao_/widgets/custom_appbar.dart';
 import 'package:bolao_/widgets/custom_bottom_bar.dart';
 import 'package:flutter/material.dart';
@@ -18,23 +20,23 @@ class _TelaRodadasState extends State<TelaRodadas> {
   int rodadaAtual = 1;
 
   //---------------------------------------------------
+  Map<String, bool> resultadosSalvos = {};
 
   int calcularRodadaAtual() {
-  final agora = DateTime.now();
-  final hoje = DateTime(agora.year, agora.month, agora.day);
+    final agora = DateTime.now();
+    final hoje = DateTime(agora.year, agora.month, agora.day);
 
-  for (int i = 0; i < rodadasMock.length; i++) {
-    final rodadaData = DateTime.parse(rodadasMock[i].data);
+    for (int i = 0; i < rodadasMock.length; i++) {
+      final rodadaData = DateTime.parse(rodadasMock[i].data);
 
-    if (!rodadaData.isBefore(hoje)) {
-      return i + 1;
+      if (!rodadaData.isBefore(hoje)) {
+        return i + 1;
+      }
     }
+    return rodadasMock.length;
   }
-  return rodadasMock.length;
-}
 
   //---------------------------------------------------
-
   void onBottomBarTap(int index) {
     setState(() {
       selectedIndex = index;
@@ -50,6 +52,8 @@ class _TelaRodadasState extends State<TelaRodadas> {
       setState(() {
         rodadaAtual++;
       });
+      carregarResultadosSalvos();
+      adicionarListeners();
     }
   }
 
@@ -58,24 +62,155 @@ class _TelaRodadasState extends State<TelaRodadas> {
       setState(() {
         rodadaAtual--;
       });
+      carregarResultadosSalvos();
+      adicionarListeners();
     }
   }
+
   //-----------------------------------------------------
   @override
   void initState() {
     super.initState();
-    final rodadaCalc = calcularRodadaAtual();
-    print("Rodada calculada: $rodadaCalc");
-    //rodadaAtual = calcularRodadaAtual();
-
-    rodadaAtual = rodadaCalc;
+    rodadaAtual = calcularRodadaAtual();
+    carregarResultadosSalvos();
+    adicionarListeners();
   }
+
+  //-----------------------------------------------------
+  Future<void> carregarResultadosSalvos() async {
+    final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+
+    resultadosSalvos.clear();
+
+    final resultados = await DatabaseHelper.instance.buscarResultadosPorRodada(rodada.numero);
+
+    for (var jogo in rodada.jogos) {
+      final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+      final existe = resultados.any((r) =>
+          r.timeA == jogo.timeA &&
+          r.timeB == jogo.timeB &&
+          r.golsA != null &&
+          r.golsB != null);
+      resultadosSalvos[chave] = existe;
+
+      // Preenche os controllers com os valores salvos
+      if (existe) {
+        final r = resultados.firstWhere((res) =>
+            res.timeA == jogo.timeA && res.timeB == jogo.timeB);
+        jogo.controllerA.text = r.golsA.toString();
+        jogo.controllerB.text = r.golsB.toString();
+      }
+    }
+    setState(() {});
+  }
+
+  //-----------------------------------------------------
+  void adicionarListeners() {
+    final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+    for (var jogo in rodada.jogos) {
+      jogo.controllerA.removeListener(salvarResultadosAutomatico);
+      jogo.controllerB.removeListener(salvarResultadosAutomatico);
+
+      jogo.controllerA.addListener(salvarResultadosAutomatico);
+      jogo.controllerB.addListener(salvarResultadosAutomatico);
+    }
+  }
+
+  Future<void> salvarResultadosAutomatico() async {
+  final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+
+  bool todosPreenchidos = rodada.jogos.every((jogo) =>
+      jogo.controllerA.text.isNotEmpty && jogo.controllerB.text.isNotEmpty);
+
+  if (!todosPreenchidos) return; // Não salva se algum campo estiver vazio
+
+  for (var jogo in rodada.jogos) {
+    final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+    final golsA = int.tryParse(jogo.controllerA.text) ?? 0;
+    final golsB = int.tryParse(jogo.controllerB.text) ?? 0;
+
+    // Verifica se já existe no banco
+    final resultadosExistentes = await DatabaseHelper.instance
+        .buscarResultadosPorRodada(rodada.numero);
+
+    final resultadoExistente = resultadosExistentes.firstWhere(
+        (r) => r.timeA == jogo.timeA && r.timeB == jogo.timeB,
+        orElse: () => Resultado(
+              id: null,
+              rodada: rodada.numero,
+              timeA: jogo.timeA,
+              timeB: jogo.timeB,
+              golsA: golsA,
+              golsB: golsB,
+            ));
+
+    if (resultadoExistente.id != null) {
+      // Atualiza resultado existente
+      resultadoExistente.golsA = golsA;
+      resultadoExistente.golsB = golsB;
+      await DatabaseHelper.instance.atualizarResultado(resultadoExistente);
+    } else {
+      // Insere novo resultado
+      final novoResultado = Resultado(
+        rodada: rodada.numero,
+        timeA: jogo.timeA,
+        timeB: jogo.timeB,
+        golsA: golsA,
+        golsB: golsB,
+      );
+      await DatabaseHelper.instance.inserirResultados(novoResultado);
+    }
+
+    resultadosSalvos[chave] = true;
+    print("✅ Resultado salvo/atualizado: Rodada ${rodada.numero} - ${jogo.timeA} $golsA x $golsB ${jogo.timeB}");
+  }
+
+  setState(() {}); // Atualiza UI
+}
+
+  // Future<void> salvarResultadosAutomatico() async {
+  //   final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+
+  //   bool todosPreenchidos = rodada.jogos.every((jogo) =>
+  //       jogo.controllerA.text.isNotEmpty && jogo.controllerB.text.isNotEmpty);
+
+  //   if (!todosPreenchidos) return; // Não salva se algum campo estiver vazio
+
+  //   for (var jogo in rodada.jogos) {
+  //     final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+  //     if (resultadosSalvos[chave] == true) continue; // já salvo
+
+  //     final golsA = int.tryParse(jogo.controllerA.text) ?? 0;
+  //     final golsB = int.tryParse(jogo.controllerB.text) ?? 0;
+
+  //     final resultado = Resultado(
+  //       id: null,
+  //       rodada: rodada.numero,
+  //       timeA: jogo.timeA,
+  //       timeB: jogo.timeB,
+  //       golsA: golsA,
+  //       golsB: golsB,
+  //     );
+
+  //     await DatabaseHelper.instance.inserirResultados(resultado);
+  //     resultadosSalvos[chave] = true;
+
+  //     print("✅ Resultado salvo: Rodada ${rodada.numero} - ${jogo.timeA} $golsA x $golsB ${jogo.timeB}");
+  //   }
+
+  //   setState(() {}); // Atualiza a UI para mostrar o check
+  // }
 
   //-----------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+
+    bool rodadaCompleta = rodada.jogos.every((jogo) {
+      final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+      return resultadosSalvos[chave] ?? false;
+    });
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -93,13 +228,20 @@ class _TelaRodadasState extends State<TelaRodadas> {
                 onPressed: rodadaAnterior,
                 icon: const Icon(Icons.arrow_back),
               ),
-              Text(
-                "Rodada ${rodada.numero}",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    "Rodada ${rodada.numero}",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (rodadaCompleta)
+                    const Icon(Icons.check, color: Colors.green),
+                ],
               ),
               IconButton(
                 onPressed: proximaRodada,
@@ -110,11 +252,9 @@ class _TelaRodadasState extends State<TelaRodadas> {
           const SizedBox(height: 6),
           Text(
             formatarData(rodada.data),
-            //rodada.data,
             style: TextStyle(
               fontSize: 18,
               color: Theme.of(context).colorScheme.onSurface,
-              //color: Colors.grey,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -128,14 +268,23 @@ class _TelaRodadasState extends State<TelaRodadas> {
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(
+                    color: rodadaCompleta
+                        ? Colors.green
+                        : Colors.grey.withOpacity(0.2),
+                    width: 2,
+                  ),
                 ),
                 child: Column(
                   children: rodada.jogos.map((jogo) {
+                    final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+                    //final jogoSalvo = resultadosSalvos[chave] ?? false;
+
                     return Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 12),
                           child: Row(
                             children: [
                               // 🔹 Time A: logo + nome + input
@@ -165,15 +314,11 @@ class _TelaRodadasState extends State<TelaRodadas> {
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    _buildInput(
-                                      context,
-                                      jogo.controllerA,
-                                      ),
+                                    _buildInput(context, jogo.controllerA),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              // 🔹 Placar x
                               const Text(
                                 "x",
                                 style: TextStyle(
@@ -182,15 +327,11 @@ class _TelaRodadasState extends State<TelaRodadas> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              // 🔹 Time B: input + nome + logo
                               Expanded(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    _buildInput(
-                                      context,
-                                     jogo.controllerB,
-                                      ),
+                                    _buildInput(context, jogo.controllerB),
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
@@ -240,39 +381,37 @@ class _TelaRodadasState extends State<TelaRodadas> {
   }
 
   Widget _buildInput(BuildContext context, TextEditingController controller) {
-  return SizedBox(
-    width: 50,
-    height: 42,
-    child: TextField(
-      controller: controller,
-      textAlign: TextAlign.center,
-      keyboardType: TextInputType.number,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceVariant, // cor igual ao seu original
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6), // mantém o arredondado
-          borderSide: BorderSide.none,
+    return SizedBox(
+      width: 50,
+      height: 42,
+      child: TextField(
+        controller: controller,
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
         ),
-        contentPadding: EdgeInsets.zero,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceVariant,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.zero,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-//---------------- TRANSFORMANDO A DATA PARA MOSTRAR NA TELA ----------------
+  //---------------- TRANSFORMANDO A DATA PARA MOSTRAR NA TELA ----------------
+  String formatarData(String dataIso) {
+    final data = DateTime.parse(dataIso);
+    final dia = data.day.toString().padLeft(2, '0');
+    final mes = data.month.toString().padLeft(2, '0');
+    final ano = data.year.toString().padLeft(2, '0');
 
-String formatarData(String dataIso) {
-  final data = DateTime.parse(dataIso);
-  final dia = data.day.toString().padLeft(2, '0');
-  final mes = data.month.toString().padLeft(2, '0');
-  final ano = data.year.toString().padLeft(2, '0');
-
-  return "$dia/$mes/$ano";
-}
-
+    return "$dia/$mes/$ano";
+  }
 }
