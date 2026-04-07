@@ -1,3 +1,392 @@
+// import 'package:bolao_/data/rodada_mock.dart';
+// import 'package:bolao_/database/database_helper.dart';
+// import 'package:bolao_/models/resultado.dart';
+// import 'package:bolao_/widgets/custom_appbar.dart';
+// import 'package:bolao_/widgets/custom_bottom_bar.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_svg/flutter_svg.dart';
+
+// class TelaRodadas extends StatefulWidget {
+//   final VoidCallback onToggleTheme;
+//   const TelaRodadas({super.key, required this.onToggleTheme});
+
+//   @override
+//   State<TelaRodadas> createState() => _TelaRodadasState();
+// }
+
+// class _TelaRodadasState extends State<TelaRodadas> {
+//   int selectedIndex = 2;
+//   int rodadaAtual = 1;
+//   Map<String, bool> resultadosSalvos = {};
+//   bool mostrandoCampoRodada = false;
+//   final rodadaInputController = TextEditingController();
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     rodadaAtual = calcularRodadaAtual();
+//     carregarResultadosSalvos();
+//     adicionarListeners();
+//   }
+
+//   @override
+//   void dispose() {
+//     rodadaInputController.dispose();
+//     super.dispose();
+//   }
+
+//   int calcularRodadaAtual() {
+//     final hoje = DateTime.now();
+//     for (int i = 0; i < rodadasMock.length; i++) {
+//       final rodadaData = DateTime.parse(rodadasMock[i].data);
+//       if (!rodadaData.isBefore(DateTime(hoje.year, hoje.month, hoje.day))) {
+//         return i + 1;
+//       }
+//     }
+//     return rodadasMock.length;
+//   }
+
+//   void onBottomBarTap(int index) {
+//     setState(() => selectedIndex = index);
+//     if (index == 1) Navigator.pushNamed(context, '/menu');
+//   }
+
+//   void proximaRodada() {
+//     if (rodadaAtual < rodadasMock.length) {
+//       setState(() {
+//         rodadaAtual++;
+//         _fecharCampoRodada();
+//       });
+//       carregarResultadosSalvos();
+//       adicionarListeners();
+//     }
+//   }
+
+//   void rodadaAnterior() {
+//     if (rodadaAtual > 1) {
+//       setState(() {
+//         rodadaAtual--;
+//         _fecharCampoRodada();
+//       });
+//       carregarResultadosSalvos();
+//       adicionarListeners();
+//     }
+//   }
+
+//   void _abrirCampoRodada() {
+//     setState(() {
+//       mostrandoCampoRodada = true;
+//       rodadaInputController.text = rodadaAtual.toString();
+//     });
+//   }
+
+//   void _fecharCampoRodada() {
+//     setState(() {
+//       mostrandoCampoRodada = false;
+//     });
+//   }
+
+//   Future<void> carregarResultadosSalvos() async {
+//     final rodada = rodadasMock[rodadaAtual - 1];
+//     resultadosSalvos.clear();
+
+//     final resultados = await DatabaseHelper.instance
+//         .buscarResultadosPorRodada(rodada.numero);
+
+//     for (var jogo in rodada.jogos) {
+//       final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
+//       final existe = resultados.any((r) =>
+//           r.timeA == jogo.timeA &&
+//           r.timeB == jogo.timeB &&
+//           r.golsA != null &&
+//           r.golsB != null);
+//       resultadosSalvos[chave] = existe;
+
+//       if (existe) {
+//         final r = resultados.firstWhere(
+//             (res) => res.timeA == jogo.timeA && res.timeB == jogo.timeB);
+//         jogo.controllerA.text = r.golsA.toString();
+//         jogo.controllerB.text = r.golsB.toString();
+//       } else {
+//         jogo.controllerA.clear();
+//         jogo.controllerB.clear();
+//       }
+//     }
+//     setState(() {});
+//   }
+
+//   void adicionarListeners() {
+//     final rodada = rodadasMock[rodadaAtual - 1];
+//     for (var jogo in rodada.jogos) {
+//       if (jogo.listenerSalvamento != null) {
+//         jogo.controllerA.removeListener(jogo.listenerSalvamento!);
+//         jogo.controllerB.removeListener(jogo.listenerSalvamento!);
+//       }
+
+//       jogo.listenerSalvamento = () {
+//         if (jogo.controllerA.text.isNotEmpty &&
+//             jogo.controllerB.text.isNotEmpty) {
+//           salvarResultadoDoJogo(
+//               rodada.numero, jogo.timeA, jogo.timeB, jogo.controllerA, jogo.controllerB);
+//         }
+//       };
+
+//       jogo.controllerA.addListener(jogo.listenerSalvamento!);
+//       jogo.controllerB.addListener(jogo.listenerSalvamento!);
+//     }
+//   }
+
+//   Future<void> salvarResultadoDoJogo(
+//       int rodadaNumero,
+//       String timeA,
+//       String timeB,
+//       TextEditingController controllerA,
+//       TextEditingController controllerB) async {
+//     if (controllerA.text.isEmpty || controllerB.text.isEmpty) return;
+
+//     final golsA = int.tryParse(controllerA.text) ?? 0;
+//     final golsB = int.tryParse(controllerB.text) ?? 0;
+
+//     final resultadosExistentes = await DatabaseHelper.instance
+//         .buscarResultadosPorRodada(rodadaNumero);
+
+//     final resultadoExistente = resultadosExistentes.firstWhere(
+//         (r) => r.timeA == timeA && r.timeB == timeB,
+//         orElse: () => Resultado(
+//             id: null,
+//             rodada: rodadaNumero,
+//             timeA: timeA,
+//             timeB: timeB,
+//             golsA: golsA,
+//             golsB: golsB));
+
+//     if (resultadoExistente.id != null) {
+//       resultadoExistente.golsA = golsA;
+//       resultadoExistente.golsB = golsB;
+//       await DatabaseHelper.instance.atualizarResultado(resultadoExistente);
+//     } else {
+//       final novoResultado = Resultado(
+//         rodada: rodadaNumero,
+//         timeA: timeA,
+//         timeB: timeB,
+//         golsA: golsA,
+//         golsB: golsB,
+//       );
+//       await DatabaseHelper.instance.inserirResultados(novoResultado);
+//     }
+
+//     resultadosSalvos["${rodadaNumero}_${timeA}_$timeB"] = true;
+//     setState(() {});
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final rodada = rodadasMock[rodadaAtual - 1];
+//     bool rodadaCompleta = rodada.jogos.every((jogo) =>
+//         resultadosSalvos["${rodada.numero}_${jogo.timeA}_${jogo.timeB}"] ?? false);
+
+//     return Scaffold(
+//       appBar: CustomAppBar(
+//         title: 'Rodadas',
+//         onThemeToggle: widget.onToggleTheme,
+//       ),
+//       body: Column(
+//         children: [
+//           const SizedBox(height: 16),
+//           Row(
+//             children: [
+//               IconButton(onPressed: rodadaAnterior, icon: const Icon(Icons.arrow_back)),
+//               Expanded(
+//                 child: Center(
+//                   child: Text(
+//                     "Rodada ${rodada.numero}",
+//                     style: TextStyle(
+//                         fontSize: 18,
+//                         color: Theme.of(context).colorScheme.onSurface,
+//                         fontWeight: FontWeight.bold),
+//                   ),
+//                 ),
+//               ),
+//               AnimatedSwitcher(
+//                 duration: const Duration(milliseconds: 250),
+//                 transitionBuilder: (child, anim) =>
+//                     SlideTransition(
+//                       position: Tween<Offset>(
+//                         begin: const Offset(0.3, 0),
+//                         end: Offset.zero,
+//                       ).animate(anim),
+//                       child: FadeTransition(opacity: anim, child: child),
+//                     ),
+//                 child: mostrandoCampoRodada
+//                     ? SizedBox(
+//                         key: ValueKey(1),
+//                         width: 50,
+//                         height: 36,
+//                         child: TextField(
+//                           controller: rodadaInputController,
+//                           textAlign: TextAlign.center,
+//                           keyboardType: TextInputType.number,
+//                           maxLength: 2,
+//                           decoration: const InputDecoration(
+//                             counterText: "",
+//                             border: OutlineInputBorder(),
+//                             contentPadding: EdgeInsets.zero,
+//                           ),
+//                           onChanged: (value) {
+//                             final rodadaDigitada = int.tryParse(value);
+//                             if (rodadaDigitada != null &&
+//                                 rodadaDigitada >= 1 &&
+//                                 rodadaDigitada <= rodadasMock.length) {
+//                               setState(() {
+//                                 rodadaAtual = rodadaDigitada;
+//                                 carregarResultadosSalvos();
+//                                 adicionarListeners();
+//                               });
+//                             }
+//                           },
+//                         ),
+//                       )
+//                     : IconButton(
+//                         key: ValueKey(2),
+//                         onPressed: _abrirCampoRodada,
+//                         icon: const Icon(Icons.search),
+//                       ),
+//               ),
+//               IconButton(onPressed: proximaRodada, icon: const Icon(Icons.arrow_forward)),
+//             ],
+//           ),
+//           const SizedBox(height: 6),
+//           Text(
+//             formatarData(rodada.data),
+//             style: TextStyle(
+//                 fontSize: 18,
+//                 color: Theme.of(context).colorScheme.onSurface,
+//                 fontWeight: FontWeight.bold),
+//           ),
+//           const SizedBox(height: 12),
+//           Expanded(
+//             child: SingleChildScrollView(
+//               padding: const EdgeInsets.symmetric(horizontal: 16),
+//               child: Container(
+//                 padding: const EdgeInsets.symmetric(vertical: 8),
+//                 decoration: BoxDecoration(
+//                     color: Theme.of(context).colorScheme.surface,
+//                     borderRadius: BorderRadius.circular(12),
+//                     border: Border.all(
+//                         color: rodadaCompleta
+//                             ? Colors.green
+//                             : Colors.grey.withOpacity(0.2),
+//                         width: 2)),
+//                 child: Column(
+//                   children: rodada.jogos.map((jogo) {
+//                     return Column(
+//                       children: [
+//                         Padding(
+//                           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+//                           child: Row(
+//                             children: [
+//                               Expanded(
+//                                 child: Row(
+//                                   mainAxisAlignment: MainAxisAlignment.end,
+//                                   children: [
+//                                     SvgPicture.asset(jogo.escudoA, width: 32, height: 32),
+//                                     const SizedBox(width: 6),
+//                                     Flexible(
+//                                       child: Text(
+//                                         jogo.timeA,
+//                                         textAlign: TextAlign.right,
+//                                         overflow: TextOverflow.ellipsis,
+//                                         style: TextStyle(
+//                                             fontSize: 14,
+//                                             color: Theme.of(context)
+//                                                 .textTheme
+//                                                 .bodyMedium!
+//                                                 .color!
+//                                                 .withOpacity(0.9)),
+//                                       ),
+//                                     ),
+//                                     const SizedBox(width: 6),
+//                                     _buildInput(context, jogo.controllerA),
+//                                   ],
+//                                 ),
+//                               ),
+//                               const SizedBox(width: 6),
+//                               const Text("x",
+//                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+//                               const SizedBox(width: 6),
+//                               Expanded(
+//                                 child: Row(
+//                                   mainAxisAlignment: MainAxisAlignment.start,
+//                                   children: [
+//                                     _buildInput(context, jogo.controllerB),
+//                                     const SizedBox(width: 6),
+//                                     Flexible(
+//                                       child: Text(
+//                                         jogo.timeB,
+//                                         overflow: TextOverflow.ellipsis,
+//                                         style: TextStyle(
+//                                             fontSize: 14,
+//                                             color: Theme.of(context)
+//                                                 .textTheme
+//                                                 .bodyMedium!
+//                                                 .color!
+//                                                 .withOpacity(0.9)),
+//                                       ),
+//                                     ),
+//                                     const SizedBox(width: 6),
+//                                     SvgPicture.asset(jogo.escudoB, width: 32, height: 32),
+//                                   ],
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         if (jogo != rodada.jogos.last)
+//                           Divider(height: 1, color: Colors.grey.withOpacity(0.3)),
+//                       ],
+//                     );
+//                   }).toList(),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//       bottomNavigationBar: CustomBottomBar(
+//         currentIndex: selectedIndex,
+//         onTap: onBottomBarTap,
+//       ),
+//     );
+//   }
+
+//   Widget _buildInput(BuildContext context, TextEditingController controller) {
+//     return SizedBox(
+//       width: 50,
+//       height: 42,
+//       child: TextField(
+//         controller: controller,
+//         textAlign: TextAlign.center,
+//         keyboardType: TextInputType.number,
+//         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//         decoration: InputDecoration(
+//           filled: true,
+//           fillColor: Theme.of(context).colorScheme.surfaceVariant,
+//           border: OutlineInputBorder(
+//               borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+//           contentPadding: EdgeInsets.zero,
+//         ),
+//       ),
+//     );
+//   }
+
+//   String formatarData(String dataIso) {
+//     final data = DateTime.parse(dataIso);
+//     final dia = data.day.toString().padLeft(2, '0');
+//     final mes = data.month.toString().padLeft(2, '0');
+//     final ano = data.year.toString().padLeft(2, '0');
+//     return "$dia/$mes/$ano";
+//   }
+// }
 import 'package:bolao_/data/rodada_mock.dart';
 import 'package:bolao_/database/database_helper.dart';
 import 'package:bolao_/models/resultado.dart';
@@ -8,7 +397,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class TelaRodadas extends StatefulWidget {
   final VoidCallback onToggleTheme;
-
   const TelaRodadas({super.key, required this.onToggleTheme});
 
   @override
@@ -18,33 +406,35 @@ class TelaRodadas extends StatefulWidget {
 class _TelaRodadasState extends State<TelaRodadas> {
   int selectedIndex = 2;
   int rodadaAtual = 1;
-
-  //---------------------------------------------------
   Map<String, bool> resultadosSalvos = {};
 
-  int calcularRodadaAtual() {
-    final agora = DateTime.now();
-    final hoje = DateTime(agora.year, agora.month, agora.day);
+  @override
+  void initState() {
+    super.initState();
+    rodadaAtual = calcularRodadaAtual();
+    carregarResultadosSalvos();
+    adicionarListeners();
+  }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  int calcularRodadaAtual() {
+    final hoje = DateTime.now();
     for (int i = 0; i < rodadasMock.length; i++) {
       final rodadaData = DateTime.parse(rodadasMock[i].data);
-
-      if (!rodadaData.isBefore(hoje)) {
+      if (!rodadaData.isBefore(DateTime(hoje.year, hoje.month, hoje.day))) {
         return i + 1;
       }
     }
     return rodadasMock.length;
   }
 
-  //---------------------------------------------------
   void onBottomBarTap(int index) {
-    setState(() {
-      selectedIndex = index;
-    });
-
-    if (index == 1) {
-      Navigator.pushNamed(context, '/menu');
-    }
+    setState(() => selectedIndex = index);
+    if (index == 1) Navigator.pushNamed(context, '/menu');
   }
 
   void proximaRodada() {
@@ -67,22 +457,75 @@ class _TelaRodadasState extends State<TelaRodadas> {
     }
   }
 
-  //-----------------------------------------------------
-  @override
-  void initState() {
-    super.initState();
-    rodadaAtual = calcularRodadaAtual();
-    carregarResultadosSalvos();
-    adicionarListeners();
+  void _abrirSeletorRodadas() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            width: 250,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    "Selecionar Rodada",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const Divider(),
+                SizedBox(
+                  height: 300,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: rodadasMock.length,
+                    itemBuilder: (context, index) {
+                      final numeroRodada = index + 1;
+                      return ListTile(
+                        title: Center(
+                          child: Text(
+                            "Rodada $numeroRodada",
+                            style: TextStyle(
+                              fontWeight: numeroRodada == rodadaAtual
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: numeroRodada == rodadaAtual
+                                  ? Theme.of(context).primaryColor
+                                  : null,
+                            ),
+                          ),
+                        ),
+                        onTap: () {
+                          setState(() {
+                            rodadaAtual = numeroRodada;
+                            carregarResultadosSalvos();
+                            adicionarListeners();
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  //-----------------------------------------------------
   Future<void> carregarResultadosSalvos() async {
-    final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
-
+    final rodada = rodadasMock[rodadaAtual - 1];
     resultadosSalvos.clear();
 
-    final resultados = await DatabaseHelper.instance.buscarResultadosPorRodada(rodada.numero);
+    final resultados = await DatabaseHelper.instance
+        .buscarResultadosPorRodada(rodada.numero);
 
     for (var jogo in rodada.jogos) {
       final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
@@ -93,91 +536,88 @@ class _TelaRodadasState extends State<TelaRodadas> {
           r.golsB != null);
       resultadosSalvos[chave] = existe;
 
-      // Preenche os controllers com os valores salvos
       if (existe) {
-        final r = resultados.firstWhere((res) =>
-            res.timeA == jogo.timeA && res.timeB == jogo.timeB);
+        final r = resultados.firstWhere(
+            (res) => res.timeA == jogo.timeA && res.timeB == jogo.timeB);
         jogo.controllerA.text = r.golsA.toString();
         jogo.controllerB.text = r.golsB.toString();
+      } else {
+        jogo.controllerA.clear();
+        jogo.controllerB.clear();
       }
     }
     setState(() {});
   }
 
-  //-----------------------------------------------------
   void adicionarListeners() {
-    final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+    final rodada = rodadasMock[rodadaAtual - 1];
     for (var jogo in rodada.jogos) {
-      jogo.controllerA.removeListener(salvarResultadosAutomatico);
-      jogo.controllerB.removeListener(salvarResultadosAutomatico);
+      if (jogo.listenerSalvamento != null) {
+        jogo.controllerA.removeListener(jogo.listenerSalvamento!);
+        jogo.controllerB.removeListener(jogo.listenerSalvamento!);
+      }
 
-      jogo.controllerA.addListener(salvarResultadosAutomatico);
-      jogo.controllerB.addListener(salvarResultadosAutomatico);
+      jogo.listenerSalvamento = () {
+        if (jogo.controllerA.text.isNotEmpty &&
+            jogo.controllerB.text.isNotEmpty) {
+          salvarResultadoDoJogo(
+              rodada.numero, jogo.timeA, jogo.timeB, jogo.controllerA, jogo.controllerB);
+        }
+      };
+
+      jogo.controllerA.addListener(jogo.listenerSalvamento!);
+      jogo.controllerB.addListener(jogo.listenerSalvamento!);
     }
   }
 
-  Future<void> salvarResultadosAutomatico() async {
-  final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
+  Future<void> salvarResultadoDoJogo(
+      int rodadaNumero,
+      String timeA,
+      String timeB,
+      TextEditingController controllerA,
+      TextEditingController controllerB) async {
+    if (controllerA.text.isEmpty || controllerB.text.isEmpty) return;
 
-  bool todosPreenchidos = rodada.jogos.every((jogo) =>
-      jogo.controllerA.text.isNotEmpty && jogo.controllerB.text.isNotEmpty);
+    final golsA = int.tryParse(controllerA.text) ?? 0;
+    final golsB = int.tryParse(controllerB.text) ?? 0;
 
-  if (!todosPreenchidos) return; // Não salva se algum campo estiver vazio
-
-  for (var jogo in rodada.jogos) {
-    final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
-    final golsA = int.tryParse(jogo.controllerA.text) ?? 0;
-    final golsB = int.tryParse(jogo.controllerB.text) ?? 0;
-
-    // Verifica se já existe no banco
     final resultadosExistentes = await DatabaseHelper.instance
-        .buscarResultadosPorRodada(rodada.numero);
+        .buscarResultadosPorRodada(rodadaNumero);
 
     final resultadoExistente = resultadosExistentes.firstWhere(
-        (r) => r.timeA == jogo.timeA && r.timeB == jogo.timeB,
+        (r) => r.timeA == timeA && r.timeB == timeB,
         orElse: () => Resultado(
-              id: null,
-              rodada: rodada.numero,
-              timeA: jogo.timeA,
-              timeB: jogo.timeB,
-              golsA: golsA,
-              golsB: golsB,
-            ));
+            id: null,
+            rodada: rodadaNumero,
+            timeA: timeA,
+            timeB: timeB,
+            golsA: golsA,
+            golsB: golsB));
 
     if (resultadoExistente.id != null) {
-      // Atualiza resultado existente
       resultadoExistente.golsA = golsA;
       resultadoExistente.golsB = golsB;
       await DatabaseHelper.instance.atualizarResultado(resultadoExistente);
     } else {
-      // Insere novo resultado
       final novoResultado = Resultado(
-        rodada: rodada.numero,
-        timeA: jogo.timeA,
-        timeB: jogo.timeB,
+        rodada: rodadaNumero,
+        timeA: timeA,
+        timeB: timeB,
         golsA: golsA,
         golsB: golsB,
       );
       await DatabaseHelper.instance.inserirResultados(novoResultado);
     }
 
-    resultadosSalvos[chave] = true;
-    print("✅ Resultado salvo/atualizado: Rodada ${rodada.numero} - ${jogo.timeA} $golsA x $golsB ${jogo.timeB}");
+    resultadosSalvos["${rodadaNumero}_${timeA}_$timeB"] = true;
+    setState(() {});
   }
-
-  setState(() {}); // Atualiza UI
-}
-
-  //-----------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final rodada = rodadasMock[(rodadaAtual - 1).clamp(0, rodadasMock.length - 1)];
-
-    bool rodadaCompleta = rodada.jogos.every((jogo) {
-      final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
-      return resultadosSalvos[chave] ?? false;
-    });
+    final rodada = rodadasMock[rodadaAtual - 1];
+    bool rodadaCompleta = rodada.jogos.every((jogo) =>
+        resultadosSalvos["${rodada.numero}_${jogo.timeA}_${jogo.timeB}"] ?? false);
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -187,17 +627,13 @@ class _TelaRodadasState extends State<TelaRodadas> {
       body: Column(
         children: [
           const SizedBox(height: 16),
-          // 🔹 Navegação da rodada
+          // Primeira linha: setas e título centralizado
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                onPressed: rodadaAnterior,
-                icon: const Icon(Icons.arrow_back),
-              ),
-              Row(
-                children: [
-                  Text(
+              IconButton(onPressed: rodadaAnterior, icon: const Icon(Icons.arrow_back)),
+              Expanded(
+                child: Center(
+                  child: Text(
                     "Rodada ${rodada.numero}",
                     style: TextStyle(
                       fontSize: 18,
@@ -205,65 +641,65 @@ class _TelaRodadasState extends State<TelaRodadas> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  if (rodadaCompleta)
-                    const Icon(Icons.check, color: Colors.green),
-                ],
+                ),
               ),
-              IconButton(
-                onPressed: proximaRodada,
-                icon: const Icon(Icons.arrow_forward),
-              ),
+              IconButton(onPressed: proximaRodada, icon: const Icon(Icons.arrow_forward)),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            formatarData(rodada.data),
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+          // Segunda linha: data centralizada e lupa no canto
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Data centralizada
+              Center(
+                child: Text(
+                  formatarData(rodada.data),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              // Lupa no canto direito
+              Positioned(
+                right: 16,
+                child: IconButton(
+                  onPressed: _abrirSeletorRodadas,
+                  icon: const Icon(Icons.search),
+                  constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          // 🔹 Lista de jogos
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: rodadaCompleta
-                        ? Colors.green
-                        : Colors.grey.withOpacity(0.2),
-                    width: 2,
-                  ),
-                ),
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: rodadaCompleta
+                            ? Colors.green
+                            : Colors.grey.withOpacity(0.2),
+                        width: 2)),
                 child: Column(
                   children: rodada.jogos.map((jogo) {
-                    //final chave = "${rodada.numero}_${jogo.timeA}_${jogo.timeB}";
-                    //final jogoSalvo = resultadosSalvos[chave] ?? false;
-
                     return Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                           child: Row(
                             children: [
-                              // 🔹 Time A: logo + nome + input
                               Expanded(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    SvgPicture.asset(
-                                      jogo.escudoA,
-                                      width: 32,
-                                      height: 32,
-                                    ),
+                                    SvgPicture.asset(jogo.escudoA, width: 32, height: 32),
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
@@ -271,13 +707,12 @@ class _TelaRodadasState extends State<TelaRodadas> {
                                         textAlign: TextAlign.right,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .color!
-                                              .withOpacity(0.9),
-                                        ),
+                                            fontSize: 14,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color!
+                                                .withOpacity(0.9)),
                                       ),
                                     ),
                                     const SizedBox(width: 6),
@@ -286,13 +721,8 @@ class _TelaRodadasState extends State<TelaRodadas> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              const Text(
-                                "x",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              const Text("x",
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Row(
@@ -305,21 +735,16 @@ class _TelaRodadasState extends State<TelaRodadas> {
                                         jogo.timeB,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontSize: 14,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium!
-                                              .color!
-                                              .withOpacity(0.9),
-                                        ),
+                                            fontSize: 14,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .color!
+                                                .withOpacity(0.9)),
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    SvgPicture.asset(
-                                      jogo.escudoB,
-                                      width: 32,
-                                      height: 32,
-                                    ),
+                                    SvgPicture.asset(jogo.escudoB, width: 32, height: 32),
                                   ],
                                 ),
                               ),
@@ -327,10 +752,7 @@ class _TelaRodadasState extends State<TelaRodadas> {
                           ),
                         ),
                         if (jogo != rodada.jogos.last)
-                          Divider(
-                            height: 1,
-                            color: Colors.grey.withOpacity(0.3),
-                          ),
+                          Divider(height: 1, color: Colors.grey.withOpacity(0.3)),
                       ],
                     );
                   }).toList(),
@@ -355,30 +777,23 @@ class _TelaRodadasState extends State<TelaRodadas> {
         controller: controller,
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           filled: true,
           fillColor: Theme.of(context).colorScheme.surfaceVariant,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide.none,
-          ),
+              borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
           contentPadding: EdgeInsets.zero,
         ),
       ),
     );
   }
 
-  //---------------- TRANSFORMANDO A DATA PARA MOSTRAR NA TELA ----------------
   String formatarData(String dataIso) {
     final data = DateTime.parse(dataIso);
     final dia = data.day.toString().padLeft(2, '0');
     final mes = data.month.toString().padLeft(2, '0');
     final ano = data.year.toString().padLeft(2, '0');
-
     return "$dia/$mes/$ano";
   }
 }

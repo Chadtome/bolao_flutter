@@ -11,6 +11,8 @@ class Jogo {
   late TextEditingController controllerA;
   late TextEditingController controllerB;
 
+  VoidCallback? listenerSalvamento;
+
   Jogo({
     required this.timeA,
     required this.timeB,
