@@ -53,6 +53,9 @@ class _TelaRodadasState extends State<TelaRodadas> {
     case 3:
       Navigator.pushNamed(context, '/classificacao');
       break;
+    case 4:
+      Navigator.pushNamed(context, '/ranking');
+      break;  
   }
 }
 

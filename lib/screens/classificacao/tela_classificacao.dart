@@ -74,6 +74,8 @@ class _TelaClassificacaoState extends State<TelaClassificacao> {
       Navigator.pushNamed(context, '/menu');
     } else if (index == 2) {
       Navigator.pushNamed(context, '/rodadas');
+    } else if (index == 4) {
+      Navigator.pushNamed(context, '/ranking');
     }
   }
 
