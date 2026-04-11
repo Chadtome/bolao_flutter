@@ -22,6 +22,8 @@ class _TelaParticipantesMenuState extends State<TelaParticipantesMenu> {
 
     if(index == 2) {
       Navigator.pushNamed(context, '/rodadas');
+    } else if (index == 3) {
+      Navigator.pushNamed(context, '/classificacao');
     }
   }
 

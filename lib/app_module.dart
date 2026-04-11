@@ -1,3 +1,4 @@
+import 'package:bolao_/screens/classificacao/tela_classificacao.dart';
 import 'package:bolao_/screens/participantes/lista_participantes.dart';
 import 'package:bolao_/screens/participantes/tela_novo_partipante.dart';
 import 'package:bolao_/screens/rodadas/tela_rodadas.dart';
@@ -41,7 +42,9 @@ class _AppModuleState extends State<AppModule> {
         '/lista_participante': (context) =>
           ListaParticipantesScreen(onToggleTheme: toggleTheme,),
         '/rodadas': (context) =>
-          TelaRodadas(onToggleTheme: toggleTheme),  
+          TelaRodadas(onToggleTheme: toggleTheme),
+        '/classificacao': (context) =>
+          TelaClassificacao(onToggleTheme: toggleTheme),  
 
       },
     ),

@@ -1,5 +1,6 @@
 //import 'dart:convert';
 import 'package:bolao_/models/resultado.dart';
+import 'package:bolao_/models/time.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/participante.dart';
@@ -182,5 +183,19 @@ class DatabaseHelper {
       whereArgs: [id],
     );
   }
+
+  // Buscar todos os times
+Future<List<Time>> buscarTodosOsTimes() async {
+  final db = await instance.database;
+  final result = await db.query('times', orderBy: 'nome');
+  return result.map((map) => Time.fromMap(map)).toList();
+}
+
+// Buscar todos os resultados (de todas as rodadas)
+Future<List<Resultado>> buscarTodosOsResultados() async {
+  final db = await instance.database;
+  final result = await db.query('resultados');
+  return result.map((map) => Resultado.fromMap(map)).toList();
+}
 }
 
