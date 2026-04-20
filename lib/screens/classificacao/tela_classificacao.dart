@@ -3,6 +3,7 @@ import 'package:bolao_/models/classificacao_time.dart';
 import 'package:bolao_/services/classificacao_service.dart';
 import 'package:bolao_/widgets/custom_appbar.dart';
 import 'package:bolao_/widgets/custom_bottom_bar.dart';
+import 'package:bolao_/widgets/menu_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -71,11 +72,11 @@ class _TelaClassificacaoState extends State<TelaClassificacao> {
     });
 
     if (index == 1) {
-      Navigator.pushNamed(context, '/menu');
+      Navigator.pushReplacementNamed(context, '/menu');
     } else if (index == 2) {
-      Navigator.pushNamed(context, '/rodadas');
+      Navigator.pushReplacementNamed(context, '/rodadas');
     } else if (index == 4) {
-      Navigator.pushNamed(context, '/ranking');
+      Navigator.pushReplacementNamed(context, '/ranking');
     }
   }
 
@@ -100,7 +101,7 @@ class _TelaClassificacaoState extends State<TelaClassificacao> {
     final alturaLinha = 60.0;
     
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: MenuAppBar(
         title: 'Classificação',
         onThemeToggle: widget.onToggleTheme,
       ),

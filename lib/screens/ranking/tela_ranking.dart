@@ -5,6 +5,7 @@ import 'package:bolao_/services/pdf_export_service.dart';
 import 'package:bolao_/services/ranking_service.dart';
 import 'package:bolao_/widgets/custom_appbar.dart';
 import 'package:bolao_/widgets/custom_bottom_bar.dart';
+import 'package:bolao_/widgets/menu_app_bar.dart';
 import 'package:bolao_/widgets/toast.widget.dart';
 import 'package:flutter/material.dart';
 
@@ -66,11 +67,11 @@ class _TelaRankingState extends State<TelaRanking> {
     });
 
     if (index == 1) {
-      Navigator.pushNamed(context, '/menu');
+      Navigator.pushReplacementNamed(context, '/menu');
     } else if (index == 2) {
-      Navigator.pushNamed(context, '/rodadas');
+      Navigator.pushReplacementNamed(context, '/rodadas');
     } else if (index == 3) {
-      Navigator.pushNamed(context, '/classificacao');
+      Navigator.pushReplacementNamed(context, '/classificacao');
     }
   }
 
@@ -221,7 +222,7 @@ class _TelaRankingState extends State<TelaRanking> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: MenuAppBar(
         title: 'Ranking',
         onThemeToggle: widget.onToggleTheme,
         actions: [

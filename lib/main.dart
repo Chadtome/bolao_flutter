@@ -12,6 +12,8 @@ void main() async {
   // Popula times de exemplo
   await criarTimesExemplo();
 
+  await DatabaseHelper.instance.inserirAdminPadrao();
+
   runApp(const AppModule());
 }
 

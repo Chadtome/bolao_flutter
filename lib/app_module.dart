@@ -1,4 +1,6 @@
 import 'package:bolao_/screens/classificacao/tela_classificacao.dart';
+import 'package:bolao_/screens/login/criar_conta_screen.dart';
+import 'package:bolao_/screens/login/login_screen.dart';
 import 'package:bolao_/screens/participantes/lista_participantes.dart';
 import 'package:bolao_/screens/participantes/tela_novo_partipante.dart';
 import 'package:bolao_/screens/ranking/tela_ranking.dart';
@@ -35,8 +37,10 @@ class _AppModuleState extends State<AppModule> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      initialRoute: '/menu',
+      initialRoute: '/login',
       routes: {
+        '/login': (context) => LoginScreen(onToggleTheme: toggleTheme),
+        '/criar_conta': (context) => TelaCriarConta(onToggleTheme: toggleTheme),
         '/menu': (context) => TelaParticipantesMenu(onToggleTheme: toggleTheme),
         '/novo_participante': (context) =>
           TelaNovoParticipante(onToggleTheme: toggleTheme),
