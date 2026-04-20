@@ -3,7 +3,6 @@ import 'package:bolao_/models/participante.dart';
 import 'package:bolao_/services/classificacao_service.dart';
 import 'package:bolao_/services/pdf_export_service.dart';
 import 'package:bolao_/services/ranking_service.dart';
-import 'package:bolao_/widgets/custom_appbar.dart';
 import 'package:bolao_/widgets/custom_bottom_bar.dart';
 import 'package:bolao_/widgets/menu_app_bar.dart';
 import 'package:bolao_/widgets/toast.widget.dart';
@@ -66,7 +65,9 @@ class _TelaRankingState extends State<TelaRanking> {
       selectedIndex = index;
     });
 
-    if (index == 1) {
+    if (index == 0) {
+        Navigator.pushReplacementNamed(context, '/home');
+    } else if (index == 1) {
       Navigator.pushReplacementNamed(context, '/menu');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, '/rodadas');

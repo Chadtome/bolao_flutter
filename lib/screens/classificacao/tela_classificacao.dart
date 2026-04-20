@@ -1,7 +1,6 @@
 import 'package:bolao_/database/database_helper.dart';
 import 'package:bolao_/models/classificacao_time.dart';
 import 'package:bolao_/services/classificacao_service.dart';
-import 'package:bolao_/widgets/custom_appbar.dart';
 import 'package:bolao_/widgets/custom_bottom_bar.dart';
 import 'package:bolao_/widgets/menu_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +70,9 @@ class _TelaClassificacaoState extends State<TelaClassificacao> {
       selectedIndex = index;
     });
 
-    if (index == 1) {
+    if (index == 0) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else if (index == 1) {
       Navigator.pushReplacementNamed(context, '/menu');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, '/rodadas');
