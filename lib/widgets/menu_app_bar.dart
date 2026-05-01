@@ -46,64 +46,67 @@ class MenuAppBar extends StatelessWidget implements PreferredSizeWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      isScrollControlled: true,
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircleAvatar(
-                radius: 30,
-                backgroundColor: Color(0xFF0B5D3B),
-                child: Icon(
-                  Icons.person,
-                  size: 40,
-                  color: Colors.white,
+        return SafeArea(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Color(0xFF0B5D3B),
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                usuario?.login ?? 'Usuário',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 16),
+                Text(
+                  usuario?.login ?? 'Usuário',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                nomeParticipante,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: usuario?.isAdmin == true 
-                      ? Colors.amber.shade700 
-                      : Colors.grey[600],
-                  fontWeight: usuario?.isAdmin == true 
-                      ? FontWeight.bold 
-                      : FontWeight.normal,
+                const SizedBox(height: 8),
+                Text(
+                  nomeParticipante,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: usuario?.isAdmin == true 
+                        ? Colors.amber.shade700 
+                        : Colors.grey[600],
+                    fontWeight: usuario?.isAdmin == true 
+                        ? FontWeight.bold 
+                        : FontWeight.normal,
+                  ),
                 ),
-              ),
-              const Divider(height: 32),
-              // 👉 NOVO: Opção Alterar Senha
-              ListTile(
-                leading: const Icon(Icons.lock_outline, color: Color(0xFF0B5D3B)),
-                title: const Text('Alterar senha'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _mostrarDialogAlterarSenha(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text(
-                  'Sair',
-                  style: TextStyle(color: Colors.red),
+                const Divider(height: 32),
+                // Opção Alterar Senha
+                ListTile(
+                  leading: const Icon(Icons.lock_outline, color: Color(0xFF0B5D3B)),
+                  title: const Text('Alterar senha'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _mostrarDialogAlterarSenha(context);
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _fazerLogout(context);
-                },
-              ),
-            ],
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text(
+                    'Sair',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _fazerLogout(context);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -195,7 +198,6 @@ class MenuAppBar extends StatelessWidget implements PreferredSizeWidget {
                     final novaSenha = novaSenhaController.text;
                     final confirmarSenha = confirmarSenhaController.text;
                     
-                    // Validações
                     if (senhaAtual.isEmpty || novaSenha.isEmpty || confirmarSenha.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Preencha todos os campos')),
@@ -225,7 +227,6 @@ class MenuAppBar extends StatelessWidget implements PreferredSizeWidget {
                       return;
                     }
                     
-                    // Verificar senha atual
                     final usuarioValido = await DatabaseHelper.instance.buscarUsuario(
                       usuario.login,
                       senhaAtual,
@@ -238,10 +239,9 @@ class MenuAppBar extends StatelessWidget implements PreferredSizeWidget {
                       return;
                     }
                     
-                    // Atualizar senha
                     await DatabaseHelper.instance.alterarSenha(usuario.id!, novaSenha);
                     
-                    Navigator.pop(context); // Fecha o dialog
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Senha alterada com sucesso!')),
                     );

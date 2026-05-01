@@ -220,6 +220,7 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                     ),
                   )
                 : ListView.builder(
+                    key: const PageStorageKey('lista_participantes'),
                     itemCount: participantesFiltrados.length,
                     itemBuilder: (context, index) {
                       final p = participantesFiltrados[index];
@@ -230,7 +231,7 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                           endActionPane: ActionPane(
                             motion: const DrawerMotion(),
                             children: [
-                              // 👉 BOTÃO EDITAR COM VERIFICAÇÃO DE PRAZO
+                              // 👉 BOTÃO EDITAR COM VERIFICAÇÃO
                               SlidableAction(
                                 onPressed: (context) async {
                                   final usuarioLogado = SessionService.getUsuario();
@@ -245,7 +246,16 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                                     return;
                                   }
                                   
-                                  // Usuário comum: verificar prazo
+                                  // Usuário comum: verificar se o participante pertence a ele
+                                  if (usuarioLogado == null || usuarioLogado.participanteId != p.id) {
+                                    AppToast.error(
+                                      context: context,
+                                      text: 'Você só pode editar seu próprio participante.',
+                                    );
+                                    return;
+                                  }
+                                  
+                                  // Verificar prazo para edição
                                   if (!TimeControlService.podeEditar()) {
                                     AppToast.error(
                                       context: context,
@@ -265,52 +275,52 @@ class _ListaParticipantesScreenState extends State<ListaParticipantesScreen> {
                                 icon: Icons.edit,
                                 label: 'Editar',
                               ),
+                              // 👉 BOTÃO EXCLUIR (apenas admin)
                               SlidableAction(
-  onPressed: (_) async {
-    final usuarioLogado = SessionService.getUsuario();
-    
-    // Verificar se é admin
-    if (usuarioLogado == null || !usuarioLogado.isAdmin) {
-      AppToast.error(
-        context: context,
-        text: 'Apenas administradores podem excluir participantes.',
-      );
-      return;
-    }
-    
-    final confirmar = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Confirmar exclusão"),
-        content: Text('Deseja excluir ${p.nome}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancelar"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Excluir"),
-          ),
-        ],
-      ),
-    );
+                                onPressed: (_) async {
+                                  final usuarioLogado = SessionService.getUsuario();
+                                  
+                                  // Apenas admin pode excluir
+                                  if (usuarioLogado == null || !usuarioLogado.isAdmin) {
+                                    AppToast.error(
+                                      context: context,
+                                      text: 'Apenas administradores podem excluir participantes.',
+                                    );
+                                    return;
+                                  }
+                                  
+                                  final confirmar = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text("Confirmar exclusão"),
+                                      content: Text('Deseja excluir ${p.nome}?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text("Cancelar"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text("Excluir"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
 
-    if (confirmar == true) {
-      await DatabaseHelper.instance.deletarParticipante(p.id!);
-      await _carregarParticipantes();
-      AppToast.success(
-        context: context,
-        text: 'Participante "${p.nome}" excluído com sucesso',
-      );
-    }
-  },
-  backgroundColor: Colors.red.shade400,
-  foregroundColor: Colors.white,
-  icon: Icons.delete,
-  label: 'Excluir',
-),
-
+                                  if (confirmar == true) {
+                                    await DatabaseHelper.instance.deletarParticipante(p.id!);
+                                    await _carregarParticipantes();
+                                    AppToast.success(
+                                      context: context,
+                                      text: 'Participante "${p.nome}" excluído com sucesso',
+                                    );
+                                  }
+                                },
+                                backgroundColor: Colors.red.shade400,
+                                foregroundColor: Colors.white,
+                                icon: Icons.delete,
+                                label: 'Excluir',
+                              ),
                             ],
                           ),
                           child: Card(
