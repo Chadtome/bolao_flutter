@@ -3,10 +3,10 @@ import 'package:bolao_/services/session_service.dart';
 class TimeControlService {
   // Data limite para CRIAÇÃO de participantes
   // Ajuste esta data conforme a necessidade
-  static final DateTime dataLimiteCriacao = DateTime(2026, 4, 30, 23, 59, 59); //ano/mes/dia/hora/min/seg
+  static final DateTime dataLimiteCriacao = DateTime(2026, 5, 30, 23, 59, 59); //ano/mes/dia/hora/min/seg
   
   // Data limite para EDIÇÃO de participantes
-  static final DateTime dataLimiteEdicao = DateTime(2026, 4, 30, 12, 00, 00); //ano/mes/dia/hora/min/seg
+  static final DateTime dataLimiteEdicao = DateTime(2026, 5, 30, 12, 00, 00); //ano/mes/dia/hora/min/seg
   
   // Verificar se pode criar
   static bool podeCriar() {
